@@ -48,6 +48,14 @@ volatile unsigned long rightRevs;
 volatile unsigned long forwardDist;
 volatile unsigned long reverseDist;
 
+void left(float ang, float speed) {
+  ccw(ang,speed);
+}
+
+void right(float ang, float speed) {
+  cw(ang,speed);
+}
+
 
 /*
  * 
@@ -193,16 +201,56 @@ ISR(INT3_vect) {
 // Functions to be called by INT2 and INT3 ISRs.
 void leftISR()
 {
-  leftTicks+= WHEEL_CIRC/8.0;
-  Serial.print("LEFT: ");
-  Serial.println(leftTicks);
+  switch(dir){
+    FORWARD:
+      leftForwardTicks+= WHEEL_CIRC/8.0;
+      forwardDist = (unsigned long) ((float) leftForwardTicks / COUNTS_PER_REV * WHEEL_CIRC);
+      dbprintf("%ld\n", leftForwardTicks);
+      break;
+    BACKWARD:
+      leftReverseTicks+= WHEEL_CIRC/8.0;
+      reverseDist = (unsigned long) ((float) leftReverseTicks / COUNTS_PER_REV * WHEEL_CIRC);
+      dbprintf("%ld\n", leftReverseTicks);
+      break;
+    LEFT:
+      leftReverseTicksTurn+= WHEEL_CIRC/8.0;
+      dbprintf("%ld\n", leftReverseTicksTurn);
+      break;
+    RIGHT:
+      leftForwardTicksTurn+= WHEEL_CIRC/8.0;
+      dbprintf("%ld\n", leftForwardTicksTurn);
+      break;
+  }
+
+  // leftTicks+= WHEEL_CIRC/8.0;
+  // Serial.print("LEFT: ");
+  // Serial.println(leftTicks);
 }
 
 void rightISR()
 {
-  rightTicks+= WHEEL_CIRC / 8.0;
-  Serial.print("RIGHT: ");
-  Serial.println(rightTicks);
+  switch(dir){
+    FORWARD:
+      rightForwardTicks+= WHEEL_CIRC/8.0;
+      dbprintf("%ld", rightForwardTicks);
+      break;
+    BACKWARD:
+      rightReverseTicks+= WHEEL_CIRC/8.0;
+      dbprintf("%ld", rightReverseTicks);
+      break;
+    LEFT:
+      rightForwardTicksTurn+= WHEEL_CIRC/8.0;
+      dbprintf("%ld", rightForwardTicksTurn);
+      break;
+      
+    RIGHT:
+      rightReverseTicksTurn+= WHEEL_CIRC/8.0;
+      dbprintf("%ld", rightReverseTicksTurn);
+      break;
+  }
+  // rightTicks+= WHEEL_CIRC / 8.0;
+  // Serial.print("RIGHT: ");
+  // Serial.println(rightTicks);
 }
 
 // Set up the external interrupt pins INT2 and INT3
@@ -285,8 +333,16 @@ void writeSerial(const char *buffer, int len)
 // Clears all our counters
 void clearCounters()
 {
-  leftTicks=0;
-  rightTicks=0;
+  leftForwardTicks = 0;
+  rightForwardTicks= 0;
+  leftReverseTicks = 0;
+  rightReverseTicks = 0;
+
+  leftForwardTicksTurn = 0; 
+  rightForwardTicksTurn = 0;
+  leftReverseTicksTurn = 0; 
+  rightReverseTicksTurn = 0;
+
   leftRevs=0;
   rightRevs=0;
   forwardDist=0;
@@ -296,36 +352,7 @@ void clearCounters()
 // Clears one particular counter
 void clearOneCounter(int which)
 {
-  switch(which)
-  {
-    case 0:
-      clearCounters();
-      break;
-
-    case 1:
-      leftTicks=0;
-      break;
-
-    case 2:
-      rightTicks=0;
-      break;
-
-    case 3:
-      leftRevs=0;
-      break;
-
-    case 4:
-      rightRevs=0;
-      break;
-
-    case 5:
-      forwardDist=0;
-      break;
-
-    case 6:
-      reverseDist=0;
-      break;
-  }
+  clearCounters();
 }
 // Intialize Alex's internal states
 

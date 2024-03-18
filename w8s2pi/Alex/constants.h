@@ -50,6 +50,15 @@ typedef enum {
   RIGHT=4
 } TDirection;
 
+typedef enum Tdir
+{
+  STOP,
+  GO,
+  BACK,
+  CCW,
+  CW
+} dir;
+
 #endif
 
 
