@@ -57,7 +57,7 @@ typedef enum Tdir
   BACK,
   CCW,
   CW
-} dir;
+} Tdir;
 
 #endif
 
