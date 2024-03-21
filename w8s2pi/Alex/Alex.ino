@@ -1,5 +1,6 @@
 #include <serialize.h>
 #include <stdarg.h>
+#include <math.h>
 
 #include "packet.h"
 #include "constants.h"
@@ -20,6 +21,14 @@ volatile TDirection dir;
 // by taking revs * WHEEL_CIRC
 
 #define WHEEL_CIRC          19
+
+#define ALEX_LENGTH 16
+#define ALEX_BREADTH 6
+
+//#define PI 3.14152654
+
+float alexDiagonal = 0.0;
+float alexCirc = 0.0;
 
 /*
  *    Alex's State Variables
@@ -50,11 +59,28 @@ volatile unsigned long reverseDist;
 unsigned long deltaDist;
 unsigned long newDist;
 
+unsigned long deltaTicks;
+unsigned long targetTicks;
+
+unsigned long computeDeltaTicks(float ang) {
+  unsigned long ticks = (unsigned long) ((ang * alexCirc * COUNTS_PER_REV) / (360.0 * WHEEL_CIRC));
+
+  return ticks;
+}
+
 void left(float ang, float speed) {
+  if(ang == 0) deltaTicks=99999999; 
+  else deltaTicks=computeDeltaTicks(ang);
+  
+  targetTicks = leftReverseTicksTurns + deltaTicks;
   ccw(ang,speed);
 }
 
 void right(float ang, float speed) {
+  if(ang == 0) deltaTicks=99999999; 
+  else deltaTicks=computeDeltaTicks(ang);
+  
+  targetTicks = leftForwardTicksTurns + deltaTicks;
   cw(ang,speed);
 }
 
@@ -222,22 +248,22 @@ void leftISR()
     case FORWARD:
       leftForwardTicks+= 1;
       forwardDist = (unsigned long) ((float) leftForwardTicks / COUNTS_PER_REV * WHEEL_CIRC);
-      dbprintf("leftForwardTicks: %lu\n", leftForwardTicks);
-      dbprintf("forwardDist: %lu\n", forwardDist);
+      // dbprintf("leftForwardTicks: %lu\n", leftForwardTicks);
+      // dbprintf("forwardDist: %lu\n", forwardDist);
       break;
     case BACKWARD:
       leftReverseTicks+= 1;
       reverseDist = (unsigned long) ((float) leftReverseTicks / COUNTS_PER_REV * WHEEL_CIRC);
-      dbprintf("leftReverseTicks: %lu\n", leftReverseTicks);
-      dbprintf("reverseDist: %lu\n", reverseDist);
+      // dbprintf("leftReverseTicks: %lu\n", leftReverseTicks);
+      // dbprintf("reverseDist: %lu\n", reverseDist);
       break;
     case LEFT:
       leftReverseTicksTurns+= 1;
-      dbprintf("leftReverseTicksTurns: %lu\n", leftReverseTicksTurns);
+      // dbprintf("leftReverseTicksTurns: %lu\n", leftReverseTicksTurns);
       break;
     case RIGHT:
       leftForwardTicksTurns+= 1;
-      dbprintf("leftForwardTicksTurns: %lu\n", leftForwardTicksTurns);
+      // dbprintf("leftForwardTicksTurns: %lu\n", leftForwardTicksTurns);
       break;
   }
 }
@@ -247,19 +273,19 @@ void rightISR()
   switch(dir) {
     case FORWARD:
       rightForwardTicks+= 1;
-      dbprintf("rightForwardTicks: %lu\n", rightForwardTicks);
+      // dbprintf("rightForwardTicks: %lu\n", rightForwardTicks);
       break;
     case BACKWARD:
       rightReverseTicks+= 1;
-      dbprintf("rightReverseTicks: %lu\n", rightReverseTicks);
+      // dbprintf("rightReverseTicks: %lu\n", rightReverseTicks);
       break;
     case LEFT:
       rightForwardTicksTurns+= 1;
-      dbprintf("rightForwardTicksTurns: %lu\n", rightForwardTicksTurns);
+      // dbprintf("rightForwardTicksTurns: %lu\n", rightForwardTicksTurns);
       break;
     case RIGHT:
       rightReverseTicksTurns+= 1;
-      dbprintf("rightReverseTicksTurns: %lu\n", rightReverseTicksTurns);
+      // dbprintf("rightReverseTicksTurns: %lu\n", rightReverseTicksTurns);
       break;
   }
 }
@@ -457,6 +483,9 @@ void waitForHello()
 void setup() {
   // put your setup code here, to run once:
 
+  alexDiagonal = sqrt((ALEX_LENGTH * ALEX_LENGTH) + (ALEX_BREADTH * ALEX_BREADTH)); 
+  alexCirc = PI * alexDiagonal;
+
   cli();
   setupEINT();
   setupSerial();
@@ -531,10 +560,32 @@ void loop() {
         stop(); 
       }
     }
-    else if(dir == STOP) {
+    else if(dir == (TDirection) STOP) {
       deltaDist=0;
       newDist=0;
       stop();
     }
+  }
+
+  if (deltaTicks > 0) {
+    if (dir == LEFT) {
+      if (leftReverseTicksTurns >= targetTicks) {
+        deltaTicks = 0;
+        targetTicks = 0;
+        stop();
+      }
+    }
+    else if (dir == RIGHT) {
+        if (leftForwardTicksTurns >= targetTicks) {
+          deltaTicks = 0;
+          targetTicks = 0;
+          stop();
+        }
+      }
+    else if (dir == (TDirection) STOP) {
+        deltaTicks = 0;
+        targetTicks = 0;
+        stop();
+    } 
   }
 }
