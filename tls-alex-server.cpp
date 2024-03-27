@@ -291,6 +291,7 @@ void handleNetworkData(void *conn, const char *buffer, int len)
 
 void *worker(void *conn)
 {
+	//conn = SSL connection established by createserver
 	int len;
 
 	char buffer[BUF_LEN];
@@ -298,7 +299,7 @@ void *worker(void *conn)
 	while(networkActive)
 	{
 		/* TODO: Implement SSL read into buffer */
-
+		
 
 		/* END TODO */
 		// As long as we are getting data, network is active
@@ -313,6 +314,7 @@ void *worker(void *conn)
 
     // Reset tls_conn to NULL.
     tls_conn = NULL;
+	printf("\n Connection closed. Exiting.\n\n");
     EXIT_THREAD(conn);
 }
 
