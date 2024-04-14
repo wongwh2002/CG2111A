@@ -58,30 +58,38 @@ void forward(float dist, float speed)
 {
   dir = (TDirection) FORWARD;
   move(speed, FORWARD);
-  if (dist > 0) deltaDist = dist;
-  else deltaDist = 9999999;
-  newDist = forwardDist + deltaDist;
+  delay(dist);
+  stop();
+  // if (dist > 0) deltaDist = dist;
+  // else deltaDist = 9999999;
+  // newDist = forwardDist + deltaDist;
 }
 
 void backward(float dist, float speed)
 {
   dir = (TDirection) BACKWARD;
   move(speed, BACKWARD);
-  if (dist > 0) deltaDist = dist;
-  else deltaDist = 9999999;
-  newDist = reverseDist + deltaDist;
+  delay(dist);
+  stop();
+  // if (dist > 0) deltaDist = dist;
+  // else deltaDist = 9999999;
+  // newDist = reverseDist + deltaDist;
 }
 
 void ccw(float dist, float speed)
 {
   dir = (TDirection) LEFT;
   move(speed, CCW);
+  delay(dist);
+  stop();
 }
 
 void cw(float dist, float speed)
 {
   dir = (TDirection) RIGHT;
   move(speed, CW);
+  delay(dist);
+  stop();
 }
 
 void stop()

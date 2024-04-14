@@ -25,6 +25,20 @@ volatile TDirection dir;
 #define ALEX_LENGTH 16
 #define ALEX_BREADTH 6
 
+#define S0 23
+#define S1 25
+#define S2 27
+#define S3 29
+#define sensorOut 33
+  
+#define TRIG_PIN 47
+#define ECHO_PIN 49
+
+// 0 == red, 1 == green, 2 == blue | 0 is low bound, 1 is high bound
+static uint32_t colour_constants[3][2] = {{380, 870}, {350, 750}, {290, 660}};
+uint32_t colour[3] = {0}; // 0 == red, 1 == green, 2 == blue
+uint32_t rawF[3] = {0}; // 0 == red, 1 == green, 2 == blue
+
 //#define PI 3.14152654
 
 float alexDiagonal = 0.0;
@@ -61,6 +75,45 @@ unsigned long newDist;
 
 unsigned long deltaTicks;
 unsigned long targetTicks;
+
+
+uint32_t ultraRead() {
+   // Clears the trigPin
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+  uint32_t duration = pulseIn(ECHO_PIN, HIGH);  
+  return (uint32_t) ((float) duration * 0.034 / 2);
+}
+
+void calcRGB() {
+    digitalWrite(S2,LOW);
+    digitalWrite(S3,LOW);
+    rawF[0] = pulseIn(sensorOut, LOW);
+    delay(50);
+    digitalWrite(S2,HIGH);
+    digitalWrite(S3,HIGH);
+    rawF[1] = pulseIn(sensorOut, LOW);
+    delay(50);
+    digitalWrite(S2,LOW);
+    digitalWrite(S3,HIGH);
+    rawF[2] = pulseIn(sensorOut, LOW);
+    delay(50);
+
+  for (int i = 0; i < 3; i++) {
+    colour[i] = map(rawF[i], colour_constants[i][0], colour_constants[i][1], 255, 0);
+  }
+}
+
+uint32_t determineColour() {
+  // calcRGB();
+  if (colour[0] >= 230 && colour[1] >= 230 && colour[2] >= 230) return 2;
+  else if (colour[0] > (colour[1] + colour[2]) / 2 + 50) return 0;
+  else if (colour[1] > (colour[0] + colour[2]) / 2 + 50) return 1;
+  else return 3;
+}
 
 unsigned long computeDeltaTicks(float ang) {
   unsigned long ticks = (unsigned long) ((ang * alexCirc * COUNTS_PER_REV) / (360.0 * WHEEL_CIRC));
@@ -117,20 +170,32 @@ void sendStatus()
   // Use the params array to store this information, and set the
   // packetType and command files accordingly, then use sendResponse
   // to send out the packet. See sendMessage on how to use sendResponse.
+  calcRGB();
+
   TPacket statusPacket;
   statusPacket.packetType = PACKET_TYPE_RESPONSE;
   statusPacket.command = RESP_STATUS;
 
-  statusPacket.params[0] = leftForwardTicks;
-  statusPacket.params[1] = rightForwardTicks;
-  statusPacket.params[2] = leftReverseTicks;
-  statusPacket.params[3] = rightReverseTicks;
-  statusPacket.params[4] = leftForwardTicksTurns;
-  statusPacket.params[5] = rightForwardTicksTurns;
-  statusPacket.params[6] = leftReverseTicksTurns;
-  statusPacket.params[7] = rightReverseTicksTurns;
-  statusPacket.params[8] = forwardDist;
-  statusPacket.params[9] = reverseDist;
+  // statusPacket.params[0] = leftForwardTicks;
+  // statusPacket.params[1] = rightForwardTicks;
+  // statusPacket.params[2] = leftReverseTicks;
+  // statusPacket.params[3] = rightReverseTicks;
+  // statusPacket.params[4] = leftForwardTicksTurns;
+  // statusPacket.params[5] = rightForwardTicksTurns;
+  // statusPacket.params[6] = leftReverseTicksTurns;
+  // statusPacket.params[7] = rightReverseTicksTurns;
+  // statusPacket.params[8] = forwardDist;
+  // statusPacket.params[9] = reverseDist;
+  
+  statusPacket.params[0] = ultraRead();
+  statusPacket.params[1] = determineColour();
+  statusPacket.params[2] = colour[0];
+  statusPacket.params[3] = colour[1];
+  statusPacket.params[4] = colour[2];
+  statusPacket.params[5] = rawF[0];
+  statusPacket.params[6] = rawF[1];
+  statusPacket.params[7] = rawF[2];
+
 
   sendResponse(&statusPacket);
 }
@@ -486,6 +551,24 @@ void setup() {
   alexDiagonal = sqrt((ALEX_LENGTH * ALEX_LENGTH) + (ALEX_BREADTH * ALEX_BREADTH)); 
   alexCirc = PI * alexDiagonal;
 
+
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+
+  // Setting the outputs
+  pinMode(S0, OUTPUT);
+  pinMode(S1, OUTPUT);
+  pinMode(S2, OUTPUT);
+  pinMode(S3, OUTPUT);
+  
+  // Setting the sensorOut as an input
+  pinMode(sensorOut, INPUT);
+  
+  // Setting frequency scaling to 20%
+  digitalWrite(S0,HIGH);
+  digitalWrite(S1,LOW);
+
+
   cli();
   setupEINT();
   setupSerial();
@@ -545,47 +628,47 @@ void loop() {
     }
   }
   
-  if(deltaDist > 0) { 
-    if(dir==FORWARD) { 
-      if(forwardDist > newDist) { 
-        deltaDist=0; 
-        newDist=0; 
-        stop(); 
-      } 
-    }
-    else if(dir == BACKWARD) {
-      if(reverseDist > newDist) { 
-        deltaDist=0; 
-        newDist=0; 
-        stop(); 
-      }
-    }
-    else if(dir == (TDirection) STOP) {
-      deltaDist=0;
-      newDist=0;
-      stop();
-    }
-  }
+  // if(deltaDist > 0) { 
+  //   if(dir==FORWARD) { 
+  //     if(forwardDist > newDist) { 
+  //       deltaDist=0; 
+  //       newDist=0; 
+  //       stop(); 
+  //     } 
+  //   }
+  //   else if(dir == BACKWARD) {
+  //     if(reverseDist > newDist) { 
+  //       deltaDist=0; 
+  //       newDist=0; 
+  //       stop(); 
+  //     }
+  //   }
+  //   else if(dir == (TDirection) STOP) {
+  //     deltaDist=0;
+  //     newDist=0;
+  //     stop();
+  //   }
+  // }
 
-  if (deltaTicks > 0) {
-    if (dir == LEFT) {
-      if (leftReverseTicksTurns >= targetTicks) {
-        deltaTicks = 0;
-        targetTicks = 0;
-        stop();
-      }
-    }
-    else if (dir == RIGHT) {
-        if (leftForwardTicksTurns >= targetTicks) {
-          deltaTicks = 0;
-          targetTicks = 0;
-          stop();
-        }
-      }
-    else if (dir == (TDirection) STOP) {
-        deltaTicks = 0;
-        targetTicks = 0;
-        stop();
-    } 
-  }
+  // if (deltaTicks > 0) {
+  //   if (dir == LEFT) {
+  //     if (leftReverseTicksTurns >= targetTicks) {
+  //       deltaTicks = 0;
+  //       targetTicks = 0;
+  //       stop();
+  //     }
+  //   }
+  //   else if (dir == RIGHT) {
+  //       if (leftForwardTicksTurns >= targetTicks) {
+  //         deltaTicks = 0;
+  //         targetTicks = 0;
+  //         stop();
+  //       }
+  //     }
+  //   else if (dir == (TDirection) STOP) {
+  //       deltaTicks = 0;
+  //       targetTicks = 0;
+  //       stop();
+  //   } 
+  // }
 }

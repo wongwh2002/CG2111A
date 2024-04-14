@@ -34,17 +34,27 @@ void handleError(TResult error)
 void handleStatus(TPacket *packet)
 {
 	printf("\n ------- ALEX STATUS REPORT ------- \n\n");
-	printf("Left Forward Ticks:\t\t%d\n", packet->params[0]);
-	printf("Right Forward Ticks:\t\t%d\n", packet->params[1]);
-	printf("Left Reverse Ticks:\t\t%d\n", packet->params[2]);
-	printf("Right Reverse Ticks:\t\t%d\n", packet->params[3]);
-	printf("Left Forward Ticks Turns:\t%d\n", packet->params[4]);
-	printf("Right Forward Ticks Turns:\t%d\n", packet->params[5]);
-	printf("Left Reverse Ticks Turns:\t%d\n", packet->params[6]);
-	printf("Right Reverse Ticks Turns:\t%d\n", packet->params[7]);
-	printf("Forward Distance:\t\t%d\n", packet->params[8]);
-	printf("Reverse Distance:\t\t%d\n", packet->params[9]);
+	// printf("Left Forward Ticks:\t\t%d\n", packet->params[0]);
+	// printf("Right Forward Ticks:\t\t%d\n", packet->params[1]);
+	// printf("Left Reverse Ticks:\t\t%d\n", packet->params[2]);
+	// printf("Right Reverse Ticks:\t\t%d\n", packet->params[3]);
+	// printf("Left Forward Ticks Turns:\t%d\n", packet->params[4]);
+	// printf("Right Forward Ticks Turns:\t%d\n", packet->params[5]);
+	// printf("Left Reverse Ticks Turns:\t%d\n", packet->params[6]);
+	// printf("Right Reverse Ticks Turns:\t%d\n", packet->params[7]);
+	// printf("Forward Distance:\t\t%d\n", packet->params[8]);
+	// printf("Reverse Distance:\t\t%d\n", packet->params[9]);
+	printf("ULTRASONIC:        \t\t%d", packet->params[0]); printf(" cm\n");
+	printf("determineColour:   \t\t%d\n", packet->params[1]);
+	printf("\nRed: 0, Green: 1, White: 2, Neither: 3\n");
+	printf("\nRGB: %d", packet->params[2]);
+	printf(", %d", packet->params[3]);
+	printf(", %d\n", packet->params[4]);
+	printf("Raw: %d", packet->params[5]);
+	printf(", %d", packet->params[6]);
+	printf(", %d\n", packet->params[7]);
 	printf("\n---------------------------------------\n\n");
+	// printf ("\033c");
 }
 
 void handleResponse(TPacket *packet)
@@ -180,46 +190,46 @@ void sendCommand(char command)
 
 	switch(command)
 	{
-		case 'f':
-		case 'F':
-			getParams(&commandPacket);
-			commandPacket.command = COMMAND_FORWARD;
-			sendPacket(&commandPacket);
-			break;
+		// case 'f':
+		// case 'F':
+		// 	getParams(&commandPacket);
+		// 	commandPacket.command = COMMAND_FORWARD;
+		// 	sendPacket(&commandPacket);
+		// 	break;
 
-		case 'b':
-		case 'B':
-			getParams(&commandPacket);
-			commandPacket.command = COMMAND_REVERSE;
-			sendPacket(&commandPacket);
-			break;
+		// case 'b':
+		// case 'B':
+		// 	getParams(&commandPacket);
+		// 	commandPacket.command = COMMAND_REVERSE;
+		// 	sendPacket(&commandPacket);
+		// 	break;
 
-		case 'l':
-		case 'L':
-			getParams(&commandPacket);
-			commandPacket.command = COMMAND_TURN_LEFT;
-			sendPacket(&commandPacket);
-			break;
+		// case 'l':
+		// case 'L':
+		// 	getParams(&commandPacket);
+		// 	commandPacket.command = COMMAND_TURN_LEFT;
+		// 	sendPacket(&commandPacket);
+		// 	break;
 
-		case 'r':
-		case 'R':
-			getParams(&commandPacket);
-			commandPacket.command = COMMAND_TURN_RIGHT;
-			sendPacket(&commandPacket);
-			break;
+		// case 'r':
+		// case 'R':
+		// 	getParams(&commandPacket);
+		// 	commandPacket.command = COMMAND_TURN_RIGHT;
+		// 	sendPacket(&commandPacket);
+		// 	break;
 
-		case 's':
-		case 'S':
+		case 'p':
+		case 'P':
 			commandPacket.command = COMMAND_STOP;
 			sendPacket(&commandPacket);
 			break;
 
-		case 'c':
-		case 'C':
-			commandPacket.command = COMMAND_CLEAR_STATS;
-			commandPacket.params[0] = 0;
-			sendPacket(&commandPacket);
-			break;
+		// case 'c':
+		// case 'C':
+		// 	commandPacket.command = COMMAND_CLEAR_STATS;
+		// 	commandPacket.params[0] = 0;
+		// 	sendPacket(&commandPacket);
+		// 	break;
 
 		case 'g':
 		case 'G':
@@ -227,8 +237,73 @@ void sendCommand(char command)
 			sendPacket(&commandPacket);
 			break;
 
-		case 'q':
-		case 'Q':
+		case 'w':
+		case 'W':
+			commandPacket.params[0] = 500;
+			commandPacket.params[1] = 50;
+			commandPacket.command = COMMAND_FORWARD;
+			sendPacket(&commandPacket);
+			break;
+		
+		case 's':
+		case 'S':
+			commandPacket.params[0] = 500;
+			commandPacket.params[1] = 50;
+			commandPacket.command = COMMAND_REVERSE;
+			sendPacket(&commandPacket);
+			break;
+
+		case 'd':
+		case 'D':
+			commandPacket.params[0] = 300;
+			commandPacket.params[1] = 40;
+			commandPacket.command = COMMAND_TURN_LEFT;
+			sendPacket(&commandPacket);
+			break;
+
+		case 'a':
+		case 'A':
+			commandPacket.params[0] = 300;
+			commandPacket.params[1] = 40./;
+			commandPacket.command = COMMAND_TURN_RIGHT;
+			sendPacket(&commandPacket);
+			break;
+
+
+
+		case 'i':
+		case 'I':
+			commandPacket.params[0] = 100;
+			commandPacket.params[1] = 50;
+			commandPacket.command = COMMAND_FORWARD;
+			sendPacket(&commandPacket);
+			break;
+		
+		case 'k':
+		case 'K':
+			commandPacket.params[0] = 100;
+			commandPacket.params[1] = 50;
+			commandPacket.command = COMMAND_REVERSE;
+			sendPacket(&commandPacket);
+			break;
+
+		case 'j':
+		case 'J':
+			commandPacket.params[0] = 100;
+			commandPacket.params[1] = 40;
+			commandPacket.command = COMMAND_TURN_RIGHT;
+			sendPacket(&commandPacket);
+			break;
+
+		case 'l':
+		case 'L':
+			commandPacket.params[0] = 100;
+			commandPacket.params[1] = 40;
+			commandPacket.command = COMMAND_TURN_LEFT;
+			sendPacket(&commandPacket);
+			break;
+
+		case '~':
 			exitFlag=1;
 			break;
 
@@ -247,6 +322,9 @@ int main()
 	printf("WAITING TWO SECONDS FOR ARDUINO TO REBOOT\n");
 	sleep(2);
 	printf("DONE\n");
+	sleep(1);
+	printf ("\033c");
+	printf("Normal -> WASD   |   Slow -> IJKL   |   Stop -> p   |   Get Info -> g   |   Quit -> ~\n");
 
 	// Spawn receiver thread
 	pthread_t recv;
@@ -254,7 +332,7 @@ int main()
 	pthread_create(&recv, NULL, receiveThread, NULL);
 
 	// Send a hello packet
-	TPacket helloPacket;
+	TPacket helloPacket;	
 
 	helloPacket.packetType = PACKET_TYPE_HELLO;
 	sendPacket(&helloPacket);
@@ -262,13 +340,12 @@ int main()
 	while(!exitFlag)
 	{
 		char ch;
-		printf("Command (f=forward, b=reverse, l=turn left, r=turn right, s=stop, c=clear stats, g=get stats q=exit)\n");
 		scanf("%c", &ch);
-
 		// Purge extraneous characters from input stream
 		flushInput();
 
 		sendCommand(ch);
+		// printf ("\033c");
 	}
 
 	printf("Closing connection to Arduino.\n");
