@@ -4,6 +4,7 @@
 
 #include "packet.h"
 #include "constants.h"
+#include "colours.h"
 
 volatile TDirection dir;
 
@@ -24,20 +25,11 @@ volatile TDirection dir;
 
 #define ALEX_LENGTH 16
 #define ALEX_BREADTH 6
-
-#define S0 23
-#define S1 25
-#define S2 27
-#define S3 29
-#define sensorOut 33
   
 #define TRIG_PIN 47
 #define ECHO_PIN 49
 
-// 0 == red, 1 == green, 2 == blue | 0 is low bound, 1 is high bound
-static uint32_t colour_constants[3][2] = {{380, 870}, {350, 750}, {290, 660}};
-uint32_t colour[3] = {0}; // 0 == red, 1 == green, 2 == blue
-uint32_t rawF[3] = {0}; // 0 == red, 1 == green, 2 == blue
+#define STOPPING_DISTANCE 3
 
 //#define PI 3.14152654
 
@@ -86,33 +78,6 @@ uint32_t ultraRead() {
   digitalWrite(TRIG_PIN, LOW);
   uint32_t duration = pulseIn(ECHO_PIN, HIGH);  
   return (uint32_t) ((float) duration * 0.034 / 2);
-}
-
-void calcRGB() {
-    digitalWrite(S2,LOW);
-    digitalWrite(S3,LOW);
-    rawF[0] = pulseIn(sensorOut, LOW);
-    delay(50);
-    digitalWrite(S2,HIGH);
-    digitalWrite(S3,HIGH);
-    rawF[1] = pulseIn(sensorOut, LOW);
-    delay(50);
-    digitalWrite(S2,LOW);
-    digitalWrite(S3,HIGH);
-    rawF[2] = pulseIn(sensorOut, LOW);
-    delay(50);
-
-  for (int i = 0; i < 3; i++) {
-    colour[i] = map(rawF[i], colour_constants[i][0], colour_constants[i][1], 255, 0);
-  }
-}
-
-uint32_t determineColour() {
-  // calcRGB();
-  if (colour[0] >= 230 && colour[1] >= 230 && colour[2] >= 230) return 2;
-  else if (colour[0] > (colour[1] + colour[2]) / 2 + 50) return 0;
-  else if (colour[1] > (colour[0] + colour[2]) / 2 + 50) return 1;
-  else return 3;
 }
 
 unsigned long computeDeltaTicks(float ang) {
@@ -268,6 +233,15 @@ void sendOK()
   okPacket.packetType = PACKET_TYPE_RESPONSE;
   okPacket.command = RESP_OK;
   sendResponse(&okPacket);  
+}
+
+// ultra detection
+void sendWall()
+{
+  TPacket wallPacket;
+  wallPacket.packetType = PACKET_TYPE_RESPONSE;
+  wallPacket.command = RESP_WALL;
+  sendResponse(&wallPacket);  
 }
 
 void sendResponse(TPacket *packet)
@@ -470,7 +444,9 @@ void handleCommand(TPacket *command)
     // For movement commands, param[0] = distance, param[1] = speed.
     case COMMAND_FORWARD:
       sendOK();
-      forward((double) command->params[0], (float) command->params[1]);
+      if (ultraRead() <= STOPPING_DISTANCE) sendWall();
+      else forward((double) command->params[0], (float) command->params[1]);
+      // forward((double) command->params[0], (float) command->params[1]);
       break;
 
     case COMMAND_REVERSE:
@@ -562,7 +538,7 @@ void setup() {
   pinMode(S3, OUTPUT);
   
   // Setting the sensorOut as an input
-  pinMode(sensorOut, INPUT);
+  pinMode(S_OUT, INPUT);
   
   // Setting frequency scaling to 20%
   digitalWrite(S0,HIGH);
@@ -600,16 +576,8 @@ void handlePacket(TPacket *packet)
   }
 }
 
-void loop() {
-// Uncomment the code below for Step 2 of Activity 3 in Week 8 Studio 2
-
-//  forward(0, 100);
-
-// Uncomment the code below for Week 9 Studio 2
-
- // put your main code here, to run repeatedly:
+void loop() {  
   TPacket recvPacket; // This holds commands from the Pi
-
   TResult result = readPacket(&recvPacket);
   
   if(result == PACKET_OK) {
@@ -627,6 +595,8 @@ void loop() {
       } 
     }
   }
+
+  
   
   // if(deltaDist > 0) { 
   //   if(dir==FORWARD) { 

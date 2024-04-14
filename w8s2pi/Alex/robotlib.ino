@@ -58,7 +58,16 @@ void forward(float dist, float speed)
 {
   dir = (TDirection) FORWARD;
   move(speed, FORWARD);
-  delay(dist);
+  unsigned long t = millis();
+  while (millis() - t <= dist) {
+    if (ultraRead() <= STOPPING_DISTANCE) {
+      break;
+    }
+    else if (speed >= 50 && ultraRead() <= STOPPING_DISTANCE * 5) {
+      move(15, FORWARD);
+    }
+  }
+  // delay(dist);
   stop();
   // if (dist > 0) deltaDist = dist;
   // else deltaDist = 9999999;

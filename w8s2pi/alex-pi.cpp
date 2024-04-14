@@ -46,11 +46,11 @@ void handleStatus(TPacket *packet)
 	// printf("Reverse Distance:\t\t%d\n", packet->params[9]);
 	printf("ULTRASONIC:        \t\t%d", packet->params[0]); printf(" cm\n");
 	printf("determineColour:   \t\t%d\n", packet->params[1]);
-	printf("\nRed: 0, Green: 1, White: 2, Neither: 3\n");
-	printf("\nRGB: %d", packet->params[2]);
-	printf(", %d", packet->params[3]);
-	printf(", %d\n", packet->params[4]);
-	printf("Raw: %d", packet->params[5]);
+	printf("\nRed: 0, Green: 1, White: 2, Black: 3\n");
+	// printf("\nRGB: %d", packet->params[2]);
+	// printf(", %d", packet->params[3]);
+	// printf(", %d\n", packet->params[4]);
+	printf("\nRaw: %d", packet->params[5]);
 	printf(", %d", packet->params[6]);
 	printf(", %d\n", packet->params[7]);
 	printf("\n---------------------------------------\n\n");
@@ -66,6 +66,12 @@ void handleResponse(TPacket *packet)
 			printf("Command OK\n");
 		break;
 
+		case RESP_WALL:
+			printf("\n==============================================\n");
+			printf("\nThere is too little clearance in front of Alex\n");
+			printf("\n==============================================\n");
+		break;
+		
 		case RESP_STATUS:
 			handleStatus(packet);
 		break;
@@ -264,7 +270,7 @@ void sendCommand(char command)
 		case 'a':
 		case 'A':
 			commandPacket.params[0] = 300;
-			commandPacket.params[1] = 40./;
+			commandPacket.params[1] = 40;
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
 			break;
@@ -274,7 +280,7 @@ void sendCommand(char command)
 		case 'i':
 		case 'I':
 			commandPacket.params[0] = 100;
-			commandPacket.params[1] = 50;
+			commandPacket.params[1] = 30;
 			commandPacket.command = COMMAND_FORWARD;
 			sendPacket(&commandPacket);
 			break;
@@ -282,7 +288,7 @@ void sendCommand(char command)
 		case 'k':
 		case 'K':
 			commandPacket.params[0] = 100;
-			commandPacket.params[1] = 50;
+			commandPacket.params[1] = 30;
 			commandPacket.command = COMMAND_REVERSE;
 			sendPacket(&commandPacket);
 			break;
