@@ -46,13 +46,15 @@ void handleStatus(TPacket *packet)
 	// printf("Reverse Distance:\t\t%d\n", packet->params[9]);
 	printf("ULTRASONIC:        \t\t%d", packet->params[0]); printf(" cm\n");
 	printf("determineColour:   \t\t%d\n", packet->params[1]);
-	printf("\nRed: 0, Green: 1, White: 2, Black: 3\n");
+	printf("\nRed: 0, Green: 1, White: 2\n");
 	// printf("\nRGB: %d", packet->params[2]);
 	// printf(", %d", packet->params[3]);
 	// printf(", %d\n", packet->params[4]);
 	printf("\nRaw: %d", packet->params[5]);
 	printf(", %d", packet->params[6]);
 	printf(", %d\n", packet->params[7]);
+	printf("Min Distance: %d", packet->params[8]);
+	// printf("\nYaw:             \t\t%d\n", packet->params[8]);
 	printf("\n---------------------------------------\n\n");
 	// printf ("\033c");
 }
@@ -245,32 +247,32 @@ void sendCommand(char command)
 
 		case 'w':
 		case 'W':
-			commandPacket.params[0] = 500;
-			commandPacket.params[1] = 50;
+			commandPacket.params[0] = 600;
+			commandPacket.params[1] = 40;
 			commandPacket.command = COMMAND_FORWARD;
 			sendPacket(&commandPacket);
 			break;
 		
 		case 's':
 		case 'S':
-			commandPacket.params[0] = 500;
-			commandPacket.params[1] = 50;
+			commandPacket.params[0] = 600;
+			commandPacket.params[1] = 40;
 			commandPacket.command = COMMAND_REVERSE;
 			sendPacket(&commandPacket);
 			break;
 
 		case 'd':
 		case 'D':
-			commandPacket.params[0] = 300;
-			commandPacket.params[1] = 40;
+			commandPacket.params[0] = 800;
+			commandPacket.params[1] = 50;
 			commandPacket.command = COMMAND_TURN_LEFT;
 			sendPacket(&commandPacket);
 			break;
 
 		case 'a':
 		case 'A':
-			commandPacket.params[0] = 300;
-			commandPacket.params[1] = 40;
+			commandPacket.params[0] = 800;
+			commandPacket.params[1] = 50;
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
 			break;
@@ -279,33 +281,64 @@ void sendCommand(char command)
 
 		case 'i':
 		case 'I':
-			commandPacket.params[0] = 100;
-			commandPacket.params[1] = 30;
+			commandPacket.params[0] = 200;
+			commandPacket.params[1] = 40;
 			commandPacket.command = COMMAND_FORWARD;
 			sendPacket(&commandPacket);
 			break;
 		
 		case 'k':
 		case 'K':
-			commandPacket.params[0] = 100;
-			commandPacket.params[1] = 30;
+			commandPacket.params[0] = 200;
+			commandPacket.params[1] = 40;
 			commandPacket.command = COMMAND_REVERSE;
 			sendPacket(&commandPacket);
 			break;
 
 		case 'j':
 		case 'J':
-			commandPacket.params[0] = 100;
-			commandPacket.params[1] = 40;
+			commandPacket.params[0] = 300;
+			commandPacket.params[1] = 50;
 			commandPacket.command = COMMAND_TURN_RIGHT;
 			sendPacket(&commandPacket);
 			break;
 
 		case 'l':
 		case 'L':
-			commandPacket.params[0] = 100;
-			commandPacket.params[1] = 40;
+			commandPacket.params[0] = 300;
+			commandPacket.params[1] = 50;
 			commandPacket.command = COMMAND_TURN_LEFT;
+			sendPacket(&commandPacket);
+			break;
+
+		case 't':
+		case 'T':
+			commandPacket.params[0] = 100;
+			commandPacket.params[1] = 50;
+			commandPacket.command = COMMAND_TURN_RIGHT;
+			sendPacket(&commandPacket);
+			break;
+
+		case 'u':
+		case 'U':
+			commandPacket.params[0] = 100;
+			commandPacket.params[1] = 50;
+			commandPacket.command = COMMAND_TURN_LEFT;
+			sendPacket(&commandPacket);
+			break;
+		
+		case '6':
+			commandPacket.params[0] = 150;
+			commandPacket.params[1] = 30;
+			commandPacket.command = COMMAND_FORWARD;
+			sendPacket(&commandPacket);
+			break;
+		
+		case 'y':
+		case 'Y':
+			commandPacket.params[0] = 150;
+			commandPacket.params[1] = 30;
+			commandPacket.command = COMMAND_REVERSE;
 			sendPacket(&commandPacket);
 			break;
 
@@ -330,7 +363,7 @@ int main()
 	printf("DONE\n");
 	sleep(1);
 	printf ("\033c");
-	printf("Normal -> WASD   |   Slow -> IJKL   |   Stop -> p   |   Get Info -> g   |   Quit -> ~\n");
+	printf("Normal -> WASD   |   Medium -> IJKL   |   Slow -> 6TYU   |   Stop -> p   |   Get Info -> g   |   Quit -> ~\n");
 
 	// Spawn receiver thread
 	pthread_t recv;

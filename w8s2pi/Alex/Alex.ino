@@ -1,7 +1,16 @@
+#include <Vector_datatype.h>
+#include <vector_type.h>
+#include <quaternion_type.h>
+#include <imuFilter.h>
+#include <LSM9DS1_Types.h>
+#include <SparkFunLSM9DS1.h>
+#include <LSM9DS1_Registers.h>
+
 #include <serialize.h>
 #include <stdarg.h>
 #include <math.h>
 
+#include <Wire.h>
 #include "packet.h"
 #include "constants.h"
 #include "colours.h"
@@ -29,9 +38,17 @@ volatile TDirection dir;
 #define TRIG_PIN 47
 #define ECHO_PIN 49
 
-#define STOPPING_DISTANCE 3
+#define STOPPING_DISTANCE 4
 
-//#define PI 3.14152654
+LSM9DS1 imu;
+imuFilter fusion;
+
+#define GAIN          0.5     // Fusion gain, value between 0 and 1 - Determines orientation correction with respect to gravity vector. 
+
+#define SD_ACCEL      0.2     // Standard deviation of acceleration. Accelerations relative to (0,0,1)g outside of this band are suppresed.                       
+            
+
+// #define PI 3.14152654
 
 float alexDiagonal = 0.0;
 float alexCirc = 0.0;
@@ -160,6 +177,8 @@ void sendStatus()
   statusPacket.params[5] = rawF[0];
   statusPacket.params[6] = rawF[1];
   statusPacket.params[7] = rawF[2];
+  statusPacket.params[8] = (uint32_t) min_distance;
+  // statusPacket.params[8] = fusion.yaw() * 180 / PI;
 
 
   sendResponse(&statusPacket);
@@ -544,7 +563,13 @@ void setup() {
   digitalWrite(S0,HIGH);
   digitalWrite(S1,LOW);
 
-
+//   Wire.begin();
+// //  imu.begin();
+//   while(!imu.begin()) {}
+//   imu.calibrate();
+// //  imu.calibrateMag();
+//   fusion.setup( imu.ax, imu.ay, imu.az ); 
+  
   cli();
   setupEINT();
   setupSerial();
@@ -580,6 +605,13 @@ void loop() {
   TPacket recvPacket; // This holds commands from the Pi
   TResult result = readPacket(&recvPacket);
   
+  // if ( imu.gyroAvailable() ) imu.readGyro();
+  // if ( imu.accelAvailable() ) imu.readAccel();
+  // // if ( imu.magAvailable() ) imu.readMag();
+  
+  // fusion.update( imu.gx, imu.gy, imu.gz, imu.ax, imu.ay, imu.az );
+
+
   if(result == PACKET_OK) {
     handlePacket(&recvPacket);
   }

@@ -63,8 +63,10 @@ void forward(float dist, float speed)
     if (ultraRead() <= STOPPING_DISTANCE) {
       break;
     }
-    else if (speed >= 50 && ultraRead() <= STOPPING_DISTANCE * 5) {
-      move(15, FORWARD);
+    else if (speed > 30 && ultraRead() <= STOPPING_DISTANCE * 6) {
+      move(45, BACKWARD);
+      delay(80);
+      break;
     }
   }
   // delay(dist);
