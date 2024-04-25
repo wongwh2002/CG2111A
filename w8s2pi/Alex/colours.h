@@ -6,11 +6,11 @@
 
 #define INT_MAX 2147483647
 
-#define S0 23
-#define S1 25
-#define S2 27
-#define S3 29
-#define S_OUT 33
+#define S0 23  //PA1
+#define S1 25  //PA3
+#define S2 27  //PA5
+#define S3 29  //PA7
+#define S_OUT 33  //PC4
 
 #define NUM_SAMPLES (3*3)
 
@@ -55,10 +55,21 @@ int k_nearest = 0;
 
 void calcRGB() {
   bool order[3][2] = {{LOW, LOW}, {HIGH, HIGH}, {LOW, HIGH}};
+//bool order[3][2] = {{0 , 0}, {1 , 1} , {0 , 1}};
   for (int i = 0; i < 3; i++) {
     digitalWrite(S2, order[i][0]);
     digitalWrite(S3, order[i][1]);
-    rawF[i] = pulseIn(S_OUT, LOW);
+    /*if(i == 0){
+      PORTA &= ~((1 << 3) | (1 << 5));
+    }
+      if(i == 1){
+      PORTA |= (1 << 3) | (1 << 5);
+      }
+      if(i == 2){
+      PORTA &= ~(1 << 3);
+      }
+      */
+    rawF[i] = pulseIn(S_OUT, LOW);  //idk this
     delay(50);
     colour[i] = map(rawF[i], colour_data[2][i], colour_data[3][i], 255, 0);
   }
