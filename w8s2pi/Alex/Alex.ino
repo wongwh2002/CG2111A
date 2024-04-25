@@ -555,14 +555,16 @@ void setup() {
   pinMode(S1, OUTPUT);
   pinMode(S2, OUTPUT);
   pinMode(S3, OUTPUT);
-  
+  //DDRA |= 0b10101010;
   // Setting the sensorOut as an input
   pinMode(S_OUT, INPUT);
-  
+  //DDRC &= ~(1 << 4);
   // Setting frequency scaling to 20%
   digitalWrite(S0,HIGH);
   digitalWrite(S1,LOW);
-
+  //PORTA |= (1 << 1);
+  //PORTA &= ~(1 << 3);
+  
 //   Wire.begin();
 // //  imu.begin();
 //   while(!imu.begin()) {}
